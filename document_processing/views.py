@@ -2,8 +2,9 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Document, Embedding
+from .models import Document
 import uuid
+from .embeddings import generate_embeddings, store_embeddings
 
 def generate_unique_asset_id():
     return str(uuid.uuid4())  # Generates a unique ID
@@ -12,20 +13,26 @@ def generate_unique_asset_id():
 def process_document(request):
     file = request.FILES.get('file')
     if file:
-        # Generate a unique asset_id
         asset_id = generate_unique_asset_id()
-        
-        # Create a new Document entry with the unique asset_id
+        print(f"Generated asset ID: {asset_id}")
         document = Document.objects.create(file=file, asset_id=asset_id)
+        print(f"Document created with ID: {asset_id}")
         
-        # Replace with actual embedding logic
-        embedding_vector = [0.1, 0.2, 0.3]
-        
-        # Create a new Embedding entry associated with the document
-        Embedding.objects.create(document=document, embedding_vector=embedding_vector)
-        
-        # Return the unique asset_id in the response
-        return Response({'asset_id': asset_id}, status=status.HTTP_201_CREATED)
+        try:
+            # Read content from file
+            content = file.read().decode('utf-8')  # Assuming text content; adjust as needed
+            print(f"File content read: {content[:100]}...")  # Log only the first 100 characters for brevity
+            
+            # Generate embeddings
+            embeddings = generate_embeddings(content)
+            
+            # Store embeddings
+            store_embeddings(asset_id, embeddings)
+            
+            return Response({'asset_id': asset_id}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(f"Error processing document: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
 
