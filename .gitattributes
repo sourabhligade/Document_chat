@@ -4,3 +4,4 @@ all filter=lfs diff=lfs merge=lfs -text
 .dylib filter=lfs diff=lfs merge=lfs -text
 specify filter=lfs diff=lfs merge=lfs -text
 exact filter=lfs diff=lfs merge=lfs -text
+venv/lib/python3.12/site-packages/torch/lib/libtorch_cpu.dylib filter=lfs diff=lfs merge=lfs -text
